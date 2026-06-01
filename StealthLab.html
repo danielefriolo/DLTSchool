@@ -1,0 +1,232 @@
+<html>
+<head>
+<title>Lab1.ipynb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #7a7e85;}
+.s6 { color: #f75464;}
+.ls0 { height: 1px; border-width: 0; color: #43454a; background-color:#43454a}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+Lab1.ipynb</font>
+</center></td></tr></table>
+<pre><span class="s0">#%% md 
+You can find below the some auxiliary functions. 
+ 
+compute_sha256_hash generates an hashed value from bytes data. To convert an integer into bytes use convert_to_bytes. 
+ 
+ <hr class="ls0">#%% 
+</span><span class="s1">import </span><span class="s0">hashlib</span>
+<span class="s1">import </span><span class="s0">random</span>
+<span class="s1">import </span><span class="s0">secp256k1</span>
+
+<span class="s0">PRIME_FIELD </span><span class="s2">= </span><span class="s0">secp256k1</span><span class="s2">.</span><span class="s0">FE</span><span class="s2">.</span><span class="s0">SIZE</span>
+<span class="s0">GENERATOR_POINT </span><span class="s2">= </span><span class="s0">secp256k1</span><span class="s2">.</span><span class="s0">G</span>
+<span class="s0">CYCLIC_PRIME_ORDER </span><span class="s2">= </span><span class="s0">secp256k1</span><span class="s2">.</span><span class="s0">GE</span><span class="s2">.</span><span class="s0">ORDER</span>
+
+<span class="s1">def </span><span class="s0">check_type</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s0">type</span><span class="s2">):</span>
+    <span class="s1">if not </span><span class="s0">isinstance</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s0">type</span><span class="s2">):</span>
+        <span class="s1">raise </span><span class="s0">TypeError</span><span class="s2">(</span><span class="s3">f&quot;data must be of type '</span><span class="s1">{</span><span class="s0">type</span><span class="s1">}</span><span class="s3">'&quot;</span><span class="s2">)</span>
+
+<span class="s1">def </span><span class="s0">convert_to_bytes</span><span class="s2">(</span><span class="s0">data</span><span class="s2">):</span>
+    <span class="s1">if </span><span class="s0">isinstance</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s0">int</span><span class="s2">):</span>
+        <span class="s0">bits_per_byte </span><span class="s2">= </span><span class="s4">8</span>
+        <span class="s0">num_bits </span><span class="s2">= </span><span class="s0">data</span><span class="s2">.</span><span class="s0">bit_length</span><span class="s2">()</span>
+        <span class="s5"># Calculate the number of bytes needed to represent the integer</span>
+        <span class="s0">num_bytes </span><span class="s2">= (</span><span class="s0">num_bits </span><span class="s2">+ </span><span class="s0">bits_per_byte </span><span class="s2">- </span><span class="s4">1</span><span class="s2">) // </span><span class="s0">bits_per_byte</span>
+        <span class="s1">return </span><span class="s0">data</span><span class="s2">.</span><span class="s0">to_bytes</span><span class="s2">(</span><span class="s0">num_bytes</span><span class="s2">, </span><span class="s0">byteorder</span><span class="s2">=</span><span class="s3">'big'</span><span class="s2">)</span>
+    <span class="s1">elif </span><span class="s0">isinstance</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s0">str</span><span class="s2">):</span>
+        <span class="s1">return </span><span class="s0">data</span><span class="s2">.</span><span class="s0">encode</span><span class="s2">(</span><span class="s3">'utf-8'</span><span class="s2">)  </span><span class="s5"># Using UTF-8 encoding for consistency</span>
+    <span class="s1">raise </span><span class="s0">TypeError</span><span class="s2">(</span><span class="s3">f&quot;Unsupported type </span><span class="s1">{</span><span class="s0">type</span><span class="s2">(</span><span class="s0">data</span><span class="s2">)</span><span class="s1">}</span><span class="s3">.&quot;</span><span class="s2">)</span>
+
+<span class="s1">def </span><span class="s0">compute_sha256_hash</span><span class="s2">(</span><span class="s0">data</span><span class="s2">):</span>
+    <span class="s0">check_type</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s0">bytes</span><span class="s2">)</span>
+    <span class="s5"># Compute the SHA-256 hash of some bytes of data</span>
+    <span class="s1">return </span><span class="s0">hashlib</span><span class="s2">.</span><span class="s0">sha256</span><span class="s2">(</span><span class="s0">data</span><span class="s2">).</span><span class="s0">digest</span><span class="s2">()</span>
+
+<span class="s1">def </span><span class="s0">convert_bytes_to_int</span><span class="s2">(</span><span class="s0">data</span><span class="s2">):</span>
+    <span class="s0">check_type</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s0">bytes</span><span class="s2">)</span>
+    <span class="s5"># Convert some bytes to its integer representation using big-endian byte order</span>
+    <span class="s1">return </span><span class="s0">int</span><span class="s2">.</span><span class="s0">from_bytes</span><span class="s2">(</span><span class="s0">data</span><span class="s2">, </span><span class="s3">'big'</span><span class="s2">)</span>
+
+<span class="s1">def </span><span class="s0">generate_random_number</span><span class="s2">(</span><span class="s0">begin</span><span class="s2">, </span><span class="s0">end</span><span class="s2">):</span>
+    <span class="s1">return </span><span class="s0">random</span><span class="s2">.</span><span class="s0">randrange</span><span class="s2">(</span><span class="s0">begin</span><span class="s2">, </span><span class="s0">end</span><span class="s2">)</span>
+<hr class="ls0"><span class="s0">#%% md 
+The following class allows you to generate and verify Schnorr signatures <hr class="ls0">#%% 
+</span><span class="s1">class </span><span class="s0">KeyPair</span><span class="s2">:</span>
+    <span class="s1">def </span><span class="s0">__init__</span><span class="s2">(</span><span class="s0">self</span><span class="s2">):</span>
+        <span class="s5"># Initialize the private key as a random number between 1 and the cyclic prime order</span>
+        <span class="s0">self</span><span class="s2">.</span><span class="s0">privkey </span><span class="s2">= </span><span class="s0">generate_random_number</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">)</span>
+        <span class="s5"># Compute the corresponding public key by multiplying the private key with the generator point</span>
+        <span class="s0">self</span><span class="s2">.</span><span class="s0">pubkey </span><span class="s2">= </span><span class="s0">self</span><span class="s2">.</span><span class="s0">privkey </span><span class="s2">* </span><span class="s0">GENERATOR_POINT</span>
+
+    <span class="s1">def </span><span class="s0">get_pubkey</span><span class="s2">(</span><span class="s0">self</span><span class="s2">):</span>
+        <span class="s1">return </span><span class="s0">self</span><span class="s2">.</span><span class="s0">pubkey</span>
+
+    <span class="s1">def </span><span class="s0">generate_signature_schnorr</span><span class="s2">(</span><span class="s0">self</span><span class="s2">, </span><span class="s0">message</span><span class="s2">):</span>
+        <span class="s5"># Generate an ephemeral key (k)</span>
+        <span class="s0">ephemeral_key </span><span class="s2">= </span><span class="s0">generate_random_number</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">)</span>
+
+        <span class="s5"># Compute A = r * G</span>
+        <span class="s0">A </span><span class="s2">= </span><span class="s0">ephemeral_key </span><span class="s2">* </span><span class="s0">GENERATOR_POINT</span>
+
+        <span class="s5"># Extract the x-coordinate of R</span>
+        <span class="s0">a </span><span class="s2">= </span><span class="s0">convert_to_bytes</span><span class="s2">(</span><span class="s0">int</span><span class="s2">(</span><span class="s0">A</span><span class="s2">.</span><span class="s0">x</span><span class="s2">) % </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">)</span>
+
+        <span class="s5"># Compute the SHA-256 hash of the message</span>
+        <span class="s0">message_hash </span><span class="s2">= </span><span class="s0">compute_sha256_hash</span><span class="s2">(</span><span class="s0">message</span><span class="s2">)</span>
+
+        <span class="s5"># Compute the challenge e = H(a || pubkey || message_hash)</span>
+        <span class="s0">c </span><span class="s2">= </span><span class="s0">compute_sha256_hash</span><span class="s2">(</span><span class="s0">a </span><span class="s2">+ </span><span class="s0">convert_to_bytes</span><span class="s2">(</span><span class="s0">int</span><span class="s2">(</span><span class="s0">self</span><span class="s2">.</span><span class="s0">pubkey</span><span class="s2">.</span><span class="s0">x</span><span class="s2">)) + </span><span class="s0">message_hash</span><span class="s2">)</span>
+        <span class="s0">c_int </span><span class="s2">= </span><span class="s0">convert_bytes_to_int</span><span class="s2">(</span><span class="s0">c</span><span class="s2">)</span>
+
+        <span class="s5"># Calculate the signature component s = k + e * privkey mod CYCLIC_PRIME_ORDER</span>
+        <span class="s0">s </span><span class="s2">= (</span><span class="s0">ephemeral_key </span><span class="s2">+ </span><span class="s0">c_int </span><span class="s2">* </span><span class="s0">self</span><span class="s2">.</span><span class="s0">privkey</span><span class="s2">) % </span><span class="s0">CYCLIC_PRIME_ORDER</span>
+
+        <span class="s5"># Return the signature components (R, s)</span>
+        <span class="s1">return </span><span class="s0">A</span><span class="s2">, </span><span class="s0">s</span>
+
+<span class="s1">def </span><span class="s0">verify_schnorr</span><span class="s2">(</span><span class="s0">signature</span><span class="s2">, </span><span class="s0">pubkey</span><span class="s2">, </span><span class="s0">message</span><span class="s2">):</span>
+        <span class="s0">A</span><span class="s2">, </span><span class="s0">s </span><span class="s2">= </span><span class="s0">signature</span>
+        <span class="s5"># Compute the SHA-256 hash of the message</span>
+        <span class="s0">message_hash </span><span class="s2">= </span><span class="s0">compute_sha256_hash</span><span class="s2">(</span><span class="s0">message</span><span class="s2">)</span>
+
+        <span class="s5"># Extract the x-coordinate of R and reduce it modulo the order of the group</span>
+        <span class="s0">a </span><span class="s2">= </span><span class="s0">convert_to_bytes</span><span class="s2">(</span><span class="s0">int</span><span class="s2">(</span><span class="s0">A</span><span class="s2">.</span><span class="s0">x</span><span class="s2">) % </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">)</span>
+
+        <span class="s5"># Compute the challenge e = H(r || pubkey || message_hash)</span>
+        <span class="s0">c </span><span class="s2">= </span><span class="s0">compute_sha256_hash</span><span class="s2">(</span><span class="s0">a </span><span class="s2">+ </span><span class="s0">convert_to_bytes</span><span class="s2">(</span><span class="s0">int</span><span class="s2">(</span><span class="s0">pubkey</span><span class="s2">.</span><span class="s0">x</span><span class="s2">)) + </span><span class="s0">message_hash</span><span class="s2">)</span>
+        <span class="s0">c_int </span><span class="s2">= </span><span class="s0">convert_bytes_to_int</span><span class="s2">(</span><span class="s0">c</span><span class="s2">)</span>
+
+        <span class="s5"># Verify the signature: check if s * G == A + c * pubkey</span>
+        <span class="s0">P </span><span class="s2">= </span><span class="s0">s </span><span class="s2">* </span><span class="s0">GENERATOR_POINT</span>
+        <span class="s0">Q </span><span class="s2">= </span><span class="s0">A </span><span class="s2">+ (</span><span class="s0">c_int </span><span class="s2">* </span><span class="s0">pubkey</span><span class="s2">)</span>
+
+        <span class="s1">return </span><span class="s0">P</span><span class="s2">.</span><span class="s0">x </span><span class="s2">== </span><span class="s0">Q</span><span class="s2">.</span><span class="s0">x </span><span class="s1">and </span><span class="s0">P</span><span class="s2">.</span><span class="s0">y </span><span class="s2">== </span><span class="s0">Q</span><span class="s2">.</span><span class="s0">y</span><hr class="ls0"><span class="s0">#%% md 
+This is the testing function you can use to check if your signature was correctly implemented. 
+ 
+This test try to maul the signature to see if some attacks can be performed. 
+Test 1 adds +1 to the s value. 
+Test 2 checks if the signature verifies on value -s. 
+Test 3 Changes the value R to a wrong one. 
+Test 4 runs the verify schnorr algorithm. 
+ 
+For the signature to be correct, the first three test shall not pass, whilst the fourth shall pass. <hr class="ls0">#%% 
+</span><span class="s1">def </span><span class="s0">verification_test_schnorr</span><span class="s2">(</span><span class="s0">signature</span><span class="s2">, </span><span class="s0">pubkey</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">):</span>
+
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Schnorr Signature Verification test&quot;</span><span class="s2">)</span>
+    <span class="s1">if </span><span class="s0">signature </span><span class="s2">== </span><span class="s1">False</span><span class="s2">:</span>
+        <span class="s0">print</span><span class="s2">(</span><span class="s3">&quot;Wrong hashes&quot;</span><span class="s2">)</span>
+        <span class="s1">return</span>
+    <span class="s0">A</span><span class="s2">, </span><span class="s0">s </span><span class="s2">= </span><span class="s0">signature</span>
+    <span class="s5"># Test 1: verifies the malleated signature s+1</span>
+    <span class="s0">is_valid_modified_s </span><span class="s2">= </span><span class="s0">verify_schnorr</span><span class="s2">((</span><span class="s0">A</span><span class="s2">, (</span><span class="s0">s</span><span class="s2">+</span><span class="s4">1</span><span class="s2">) % </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">), </span><span class="s0">pubkey</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Modified s+1 Signature valid: </span><span class="s1">{</span><span class="s0">is_valid_modified_s</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+
+    <span class="s5"># Test 2: verifies the malleated signature -s</span>
+    <span class="s0">is_valid_modified_neg_s </span><span class="s2">= </span><span class="s0">verify_schnorr</span><span class="s2">((</span><span class="s0">A</span><span class="s2">, (-</span><span class="s0">s </span><span class="s2">% </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">)), </span><span class="s0">pubkey</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Modified -s Signature valid: </span><span class="s1">{</span><span class="s0">is_valid_modified_neg_s</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+
+    <span class="s5"># Test 3: use Wrong R</span>
+    <span class="s0">A_wrong </span><span class="s2">=  </span><span class="s0">generate_random_number</span><span class="s2">(</span><span class="s4">1</span><span class="s2">, </span><span class="s0">CYCLIC_PRIME_ORDER</span><span class="s2">) * </span><span class="s0">GENERATOR_POINT</span>
+    <span class="s0">is_valid_wrong_A </span><span class="s2">= </span><span class="s0">verify_schnorr</span><span class="s2">((</span><span class="s0">A_wrong</span><span class="s2">, </span><span class="s0">s</span><span class="s2">), </span><span class="s0">pubkey</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Wrong A part of Signature valid: </span><span class="s1">{</span><span class="s0">is_valid_wrong_A</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span>
+
+    <span class="s5"># Test 4: verify correct signature</span>
+    <span class="s0">is_valid </span><span class="s2">= </span><span class="s0">verify_schnorr</span><span class="s2">(</span><span class="s0">signature</span><span class="s2">, </span><span class="s0">pubkey</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">)</span>
+    <span class="s0">print</span><span class="s2">(</span><span class="s3">f&quot;Actual Signature is valid: </span><span class="s1">{</span><span class="s0">is_valid</span><span class="s1">}</span><span class="s3">&quot;</span><span class="s2">)</span><hr class="ls0"><span class="s0">#%% md 
+Exercise! 
+ 
+Produce and test your threshold signature scheme by following the indication in the slides. 
+ 
+generate_DKG_cont() generates the public key and secret key contribution of the party. 
+ 
+gen_share(pk1,pk2, sk_cont), given the two public keys, aggregates them and output the secret share of the party (that is sk_cont) 
+ 
+generate_partial_A_com generates the commitment H(A) and partial_A_check(A,h) checks for the partial opening, i.e. if H(A)=h 
+ 
+This functions will be run for simulating Signer 1 and Signer 2 behavior. <hr class="ls0">#%% 
+</span><span class="s1">def </span><span class="s0">generate_DKG_cont</span><span class="s2">():</span>
+   <span class="s2">...</span>
+    <span class="s1">return </span><span class="s2">(</span><span class="s0">pk_cont</span><span class="s2">,</span><span class="s0">sk_cont</span><span class="s2">)</span>
+
+<span class="s1">def </span><span class="s0">gen_share</span><span class="s2">(</span><span class="s0">pk1</span><span class="s2">,</span><span class="s0">pk2</span><span class="s2">, </span><span class="s0">sk_share</span><span class="s2">):</span>
+    <span class="s2">...</span>
+    <span class="s1">return </span><span class="s2">(</span><span class="s0">pk</span><span class="s2">, </span><span class="s0">sk_share</span><span class="s2">)</span>
+
+<span class="s5">#generate first round commitment and opening values, A = r * G, the secret randomness r, and H(A)</span>
+<span class="s1">def </span><span class="s0">generate_partial_A_com</span><span class="s2">():</span>
+    <span class="s2">...</span>
+    <span class="s1">return </span><span class="s2">(</span><span class="s0">r</span><span class="s2">,</span><span class="s0">A</span><span class="s2">,</span><span class="s0">h</span><span class="s2">)</span>
+
+<span class="s5">#check the opening A on h</span>
+<span class="s1">def </span><span class="s0">partial_A_check</span><span class="s2">(</span><span class="s0">A</span><span class="s2">,</span><span class="s0">h</span><span class="s2">):</span>
+    <span class="s2">...</span>
+    <span class="s1">return </span><span class="s6">?? </span><span class="s2">== </span><span class="s6">??</span><hr class="ls0"><span class="s0">#%% md 
+generate_sig_share is run by Party 1 (resp 2) to chech and produce the share if the DKG contribution is correct, i.e. if the openings A1 and A2 are correct w.r.t. h1 and h2. Return the shared value. 
+ 
+The generated value is the aggregated A together with the share s_i. 
+ 
+Both party generates their own shares to be aggregated after exchange. <hr class="ls0">#%% 
+</span><span class="s1">def </span><span class="s0">generate_sig_share</span><span class="s2">(</span><span class="s0">A1</span><span class="s2">,</span><span class="s0">A2</span><span class="s2">,</span><span class="s0">h1</span><span class="s2">,</span><span class="s0">h2</span><span class="s2">,</span><span class="s0">pk</span><span class="s2">,</span><span class="s0">r</span><span class="s2">,</span><span class="s0">message</span><span class="s2">,</span><span class="s0">sk</span><span class="s2">):</span>
+    <span class="s2">...</span>
+    <span class="s5"># Return the signature components (A, s)</span>
+    <span class="s1">return </span><span class="s0">A</span><span class="s2">, </span><span class="s0">s</span><hr class="ls0"><span class="s0">#%% md 
+The aggregation function generates the schnorr signature on pk. sig1 (resp. sig2) is (A1,s12) (resp. (A1,s2)). <hr class="ls0">#%% 
+</span><span class="s1">def </span><span class="s0">aggregate_signatures</span><span class="s2">(</span><span class="s0">sig1</span><span class="s2">,</span><span class="s0">sig2</span><span class="s2">):</span>
+   <span class="s2">...</span>
+    <span class="s1">return </span><span class="s0">A1</span><span class="s2">, </span><span class="s0">s12</span><hr class="ls0"><span class="s0">#%% md 
+Main fucntion that simulate a (2,2)-Schnorr TSIG Execution <hr class="ls0">#%% 
+</span><span class="s1">if </span><span class="s0">__name__ </span><span class="s2">== </span><span class="s3">&quot;__main__&quot;</span><span class="s2">:</span>
+
+
+    <span class="s5"># Initialize key pair and message</span>
+    <span class="s0">key1 </span><span class="s2">= </span><span class="s0">KeyPair</span><span class="s2">()</span>
+    <span class="s0">key2 </span><span class="s2">= </span><span class="s0">KeyPair</span><span class="s2">()</span>
+    <span class="s0">message </span><span class="s2">= </span><span class="s3">&quot;Hello World&quot;</span>
+    <span class="s0">message_bytes </span><span class="s2">= </span><span class="s0">convert_to_bytes</span><span class="s2">(</span><span class="s0">message</span><span class="s2">)</span>
+    <span class="s5"># Schnorr Signature Test</span>
+    <span class="s0">schnorr_signature </span><span class="s2">= </span><span class="s0">key1</span><span class="s2">.</span><span class="s0">generate_signature_schnorr</span><span class="s2">(</span><span class="s0">message_bytes</span><span class="s2">)</span>
+    <span class="s0">verification_test_schnorr</span><span class="s2">(</span><span class="s0">schnorr_signature</span><span class="s2">, </span><span class="s0">key1</span><span class="s2">.</span><span class="s0">get_pubkey</span><span class="s2">(), </span><span class="s0">message_bytes</span><span class="s2">)</span>
+
+    <span class="s5">#TSig test</span>
+
+    <span class="s5">#DKG contribute generation for party 1</span>
+    <span class="s2">(</span><span class="s0">pk1</span><span class="s2">,</span><span class="s0">sk1</span><span class="s2">) = </span><span class="s0">generate_DKG_cont</span><span class="s2">()</span>
+
+    <span class="s5">#DKG contribute generation for party 2</span>
+    <span class="s2">(</span><span class="s0">pk2</span><span class="s2">, </span><span class="s0">sk2</span><span class="s2">) = </span><span class="s0">generate_DKG_cont</span><span class="s2">()</span>
+
+    <span class="s5">#key share generation of party 1</span>
+    <span class="s2">(</span><span class="s0">pk</span><span class="s2">, </span><span class="s0">sk1</span><span class="s2">) = </span><span class="s0">gen_share</span><span class="s2">(</span><span class="s0">pk1</span><span class="s2">,</span><span class="s0">pk2</span><span class="s2">,</span><span class="s0">sk1</span><span class="s2">)</span>
+
+    <span class="s5">#key share generation of party 2</span>
+    <span class="s2">(</span><span class="s0">pk</span><span class="s2">, </span><span class="s0">sk2</span><span class="s2">) = </span><span class="s0">gen_share</span><span class="s2">(</span><span class="s0">pk1</span><span class="s2">, </span><span class="s0">pk2</span><span class="s2">, </span><span class="s0">sk2</span><span class="s2">)</span>
+
+    <span class="s5">#Party 1 generate his commitment</span>
+    <span class="s2">(</span><span class="s0">r1</span><span class="s2">,</span><span class="s0">A1</span><span class="s2">,</span><span class="s0">h1</span><span class="s2">) = </span><span class="s0">generate_partial_A_com</span><span class="s2">()</span>
+
+    <span class="s5">#Party 2 generate his commitment</span>
+    <span class="s2">(</span><span class="s0">r2</span><span class="s2">,</span><span class="s0">A2</span><span class="s2">,</span><span class="s0">h2</span><span class="s2">) = </span><span class="s0">generate_partial_A_com</span><span class="s2">()</span>
+
+
+    <span class="s5"># Party 1 generates the second round</span>
+    <span class="s0">sig1 </span><span class="s2">= </span><span class="s0">generate_sig_share</span><span class="s2">(</span><span class="s0">A1</span><span class="s2">,</span><span class="s0">A2</span><span class="s2">,</span><span class="s0">h1</span><span class="s2">,</span><span class="s0">h2</span><span class="s2">, </span><span class="s0">pk</span><span class="s2">,</span><span class="s0">r1</span><span class="s2">,</span><span class="s0">message_bytes</span><span class="s2">,</span><span class="s0">sk1</span><span class="s2">)</span>
+
+    <span class="s5"># Party 2 generates the second round</span>
+    <span class="s0">sig2 </span><span class="s2">= </span><span class="s0">generate_sig_share</span><span class="s2">(</span><span class="s0">A1</span><span class="s2">, </span><span class="s0">A2</span><span class="s2">, </span><span class="s0">h1</span><span class="s2">,</span><span class="s0">h2</span><span class="s2">,</span><span class="s0">pk</span><span class="s2">, </span><span class="s0">r2</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">, </span><span class="s0">sk2</span><span class="s2">)</span>
+
+    <span class="s5"># Aggregate signatures</span>
+    <span class="s0">sig </span><span class="s2">= </span><span class="s0">aggregate_signatures</span><span class="s2">(</span><span class="s0">sig1</span><span class="s2">,</span><span class="s0">sig2</span><span class="s2">)</span>
+    <span class="s0">verification_test_schnorr</span><span class="s2">(</span><span class="s0">sig</span><span class="s2">, </span><span class="s0">pk</span><span class="s2">, </span><span class="s0">message_bytes</span><span class="s2">)</span></pre>
+</body>
+</html>
